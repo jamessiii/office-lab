@@ -103,6 +103,9 @@ const defaultState = {
   todoSelectedDate: getDateKey(new Date()),
   todoShowFavoritesOnly: false,
   todoShowCompleted: true,
+  privacyMode: false,
+  privacyPinHash: "",
+  privacyModeActivated: false,
   bookmarks: [],
   bookmarkGroups: [],
   bookmarkViewMode: "card",
@@ -562,7 +565,7 @@ const trackerTemplate = `
         </span>
         <div class="currency-input-wrap">
           <span class="currency-prefix">₩</span>
-          <input id="monthlySalary" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="3,000,000" />
+          <input id="monthlySalary" class="privacy-sensitive" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="3,000,000" />
         </div>
         <div id="salaryAppliedToast" class="inline-field-toast" aria-live="polite"></div>
       </label>
@@ -587,27 +590,27 @@ const trackerTemplate = `
     <div class="summary-grid">
       <article class="summary-card">
         <div class="summary-label">오늘 회사에 끼친 손해</div>
-        <div id="todayMoney" class="summary-value">₩ 0</div>
+        <div id="todayMoney" class="summary-value privacy-sensitive">₩ 0</div>
         <div id="todaySub" class="summary-sub">오늘 근무시간 00:00:00</div>
       </article>
       <article class="summary-card">
         <div class="summary-label">이번 달 회사에 끼친 손해</div>
-        <div id="monthMoney" class="summary-value">₩ 0</div>
+        <div id="monthMoney" class="summary-value privacy-sensitive">₩ 0</div>
         <div id="monthSub" class="summary-sub">완료된 근무일 0일 / 0일</div>
       </article>
     </div>
     <div class="stats-grid">
       <article class="stat-card">
         <div class="stat-label">초당 증가액</div>
-        <div id="perSecondValue" class="stat-value">₩ 0</div>
+        <div id="perSecondValue" class="stat-value privacy-sensitive">₩ 0</div>
       </article>
       <article class="stat-card">
         <div class="stat-label">시급</div>
-        <div id="hourlyValue" class="stat-value">₩ 0</div>
+        <div id="hourlyValue" class="stat-value privacy-sensitive">₩ 0</div>
       </article>
       <article class="stat-card">
         <div class="stat-label">일급</div>
-        <div id="dailyValue" class="stat-value">₩ 0</div>
+        <div id="dailyValue" class="stat-value privacy-sensitive">₩ 0</div>
       </article>
       <article class="stat-card">
         <div class="stat-label">이번 달 근무일</div>
@@ -1315,7 +1318,7 @@ function initTrackerTab(root, { state, persist }) {
         <div class="day-date">${date.getDate()}</div>
         ${tag ? `<div class="day-tag ${tagClass}">${tag}</div>` : ""}
         ${timeText ? `<div class="day-time">${timeText}</div>` : ""}
-        <div class="day-money">${current && !result.weekend && !result.holiday ? formatMoney(result.earnings, 0) : ""}</div>
+        <div class="day-money privacy-sensitive">${current && !result.weekend && !result.holiday ? formatMoney(result.earnings, 0) : ""}</div>
       `;
       if (current) dayEl.addEventListener("click", () => openDayModal(getDateKey(date)));
       els.calendarGrid.appendChild(dayEl);
@@ -1636,11 +1639,11 @@ const incomeTemplate = `
   <p class="hint">입력값을 바꾸면 표가 자동으로 다시 계산돼. 목표 연봉 감을 빠르게 보는 용도로 쓸 수 있어.</p>
   <div id="incomeCurrentSummary" class="income-current-summary"></div>
   <div class="income-controls">
-    <label class="field"><span>시작 연봉 (만원)</span><input id="annualMin" type="number" min="1000" step="100" value="2800" /></label>
-    <label class="field"><span>끝 연봉 (만원)</span><input id="annualMax" type="number" min="1000" step="100" value="10000" /></label>
+    <label class="field"><span>시작 연봉 (만원)</span><input id="annualMin" class="privacy-sensitive" type="number" min="1000" step="100" value="2800" /></label>
+    <label class="field"><span>끝 연봉 (만원)</span><input id="annualMax" class="privacy-sensitive" type="number" min="1000" step="100" value="10000" /></label>
     <label class="field"><span>간격 (만원)</span><input id="annualStep" type="number" min="100" step="100" value="100" /></label>
     <label class="field"><span>부양가족 수</span><select id="dependents"><option value="1">1명</option><option value="2">2명</option><option value="3">3명</option><option value="4">4명</option></select></label>
-    <label class="field"><span>비과세 식대 (원)</span><input id="nontaxMeal" type="number" min="0" step="10000" value="200000" /></label>
+    <label class="field"><span>비과세 식대 (원)</span><input id="nontaxMeal" class="privacy-sensitive" type="number" min="0" step="10000" value="200000" /></label>
   </div>
   <div class="table-wrap income-table-wrap">
     <table class="income-table">
@@ -1744,7 +1747,8 @@ function initIncomeTab(root, { state, persist }) {
       rows.push({ annualManwon, monthlyGross, monthlyNontax, pension, health, longTermCare, employment, incomeTax, localTax, net });
     }
 
-    const nearestRow = currentMonthlyNet > 0
+    const showCurrentIncomeHighlight = !state.privacyMode;
+    const nearestRow = currentMonthlyNet > 0 && showCurrentIncomeHighlight
       ? rows.reduce((best, row) => {
           if (!best) return row;
           return Math.abs(row.net - currentMonthlyNet) < Math.abs(best.net - currentMonthlyNet) ? row : best;
@@ -1753,7 +1757,7 @@ function initIncomeTab(root, { state, persist }) {
 
     rows.forEach(({ annualManwon, monthlyGross, monthlyNontax, pension, health, longTermCare, employment, incomeTax, localTax, net }) => {
       const tr = document.createElement("tr");
-      if (nearestRow?.annualManwon === annualManwon) tr.classList.add("current-salary-row");
+      if (nearestRow?.annualManwon === annualManwon && showCurrentIncomeHighlight) tr.classList.add("current-salary-row");
       tr.dataset.annualManwon = String(annualManwon);
       tr.innerHTML = `
         <td>${annualManwon.toLocaleString()}만</td>
@@ -1765,7 +1769,7 @@ function initIncomeTab(root, { state, persist }) {
         <td>${formatNumber(employment)}</td>
         <td>${formatNumber(incomeTax)}</td>
         <td>${formatNumber(localTax)}</td>
-        <td class="highlight">${formatNumber(net)}</td>
+        <td class="${showCurrentIncomeHighlight ? "highlight" : ""}">${formatNumber(net)}</td>
       `;
       tr.addEventListener("click", () => {
         expandedAnnualManwon = expandedAnnualManwon === annualManwon ? null : annualManwon;
@@ -1802,7 +1806,7 @@ function initIncomeTab(root, { state, persist }) {
       }
     });
 
-    if (currentMonthlyNet > 0) {
+    if (currentMonthlyNet > 0 && showCurrentIncomeHighlight) {
       const inRange = nearestRow != null && nearestRow.annualManwon >= min && nearestRow.annualManwon <= max;
       els.currentSummary.innerHTML = `
         <div class="income-current-kicker">슬기로운 월루생활 기준</div>
@@ -1813,6 +1817,11 @@ function initIncomeTab(root, { state, persist }) {
         <div class="income-current-meta">예상 월 실수령액 기준 약 <strong>${formatNumber(nearestRow?.net || 0)}</strong>원</div>
       `;
       els.currentSummary.classList.toggle("out-of-range", !inRange);
+    } else if (state.privacyMode) {
+      els.currentSummary.innerHTML = `
+        <div class="income-current-copy">프라이버시 모드에서는 현재 월급 기준 강조를 숨기고 있어요.</div>
+      `;
+      els.currentSummary.classList.remove("out-of-range");
     } else {
       els.currentSummary.innerHTML = `
         <div class="income-current-copy">슬기로운 월루생활 탭에 월급을 입력하면 현재 연봉 위치를 여기서 바로 보여줘요.</div>
@@ -1825,10 +1834,14 @@ function initIncomeTab(root, { state, persist }) {
     el.addEventListener("input", render);
     el.addEventListener("change", render);
   });
+  window.addEventListener("privacy-mode-change", render);
 
   syncInputsFromState();
   render();
   return {
+    destroy() {
+      window.removeEventListener("privacy-mode-change", render);
+    },
     onTabChange(isActive) {
       if (isActive) render();
     }
@@ -3021,14 +3034,31 @@ const todoTemplate = `
         </label>
       </div>
       <div class="todo-modal-options">
-        <label class="todo-check">
-          <input id="todoFavoriteInput" type="checkbox" />
-          <span>중요 표시</span>
-        </label>
-        <label class="todo-check">
-          <input id="todoCompletedInput" type="checkbox" />
-          <span>완료 처리</span>
-        </label>
+        <div class="todo-modal-options-left">
+          <label class="todo-check todo-check-complete">
+            <input id="todoCompletedInput" type="checkbox" />
+            <span>완료 처리</span>
+          </label>
+        </div>
+        <div class="todo-modal-options-right">
+          <label class="todo-check todo-check-icon" title="중요 표시">
+            <input id="todoFavoriteInput" type="checkbox" />
+            <span aria-hidden="true">★</span>
+          </label>
+          <label class="todo-check todo-check-icon todo-check-privacy" title="프라이버시 일정">
+            <input id="todoPrivacyInput" type="checkbox" />
+            <span aria-hidden="true">
+              <svg class="todo-privacy-icon todo-privacy-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="10" width="14" height="10" rx="3"></rect>
+                <path d="M9 10V7a3 3 0 0 1 5.2-2.1"></path>
+              </svg>
+              <svg class="todo-privacy-icon todo-privacy-icon-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="10" width="14" height="10" rx="3"></rect>
+                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+              </svg>
+            </span>
+          </label>
+        </div>
       </div>
       <div id="todoModalError" class="bookmark-modal-error" aria-live="polite"></div>
       <div class="todo-modal-actions">
@@ -3097,6 +3127,7 @@ function initTodoTab(root, { state, persist }) {
     locationInput: root.querySelector("#todoLocationInput"),
     noteInput: root.querySelector("#todoNoteInput"),
     favoriteInput: root.querySelector("#todoFavoriteInput"),
+    privacyInput: root.querySelector("#todoPrivacyInput"),
     completedInput: root.querySelector("#todoCompletedInput"),
     modalError: root.querySelector("#todoModalError"),
     saveBtn: root.querySelector("#todoSaveBtn"),
@@ -3145,6 +3176,7 @@ function initTodoTab(root, { state, persist }) {
       location: String(item.location || ""),
       note: String(item.note || ""),
       favorite: Boolean(item.favorite),
+      private: Boolean(item.private),
       completed: Boolean(item.completed),
       createdAt: String(item.createdAt || new Date().toISOString()),
       updatedAt: String(item.updatedAt || new Date().toISOString()),
@@ -3198,6 +3230,17 @@ function initTodoTab(root, { state, persist }) {
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="todo-trash-icon">
         <path d="M7.75 7.5h8.5l-.6 9.35a1.7 1.7 0 0 1-1.7 1.6h-3.9a1.7 1.7 0 0 1-1.7-1.6L7.75 7.5Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
         <path d="M6.8 7.5h10.4M9.9 7.5V5.95c0-.55.45-1 1-1h2.2c.55 0 1 .45 1 1V7.5M10.35 10.2v5.1M13.65 10.2v5.1" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+  }
+
+  function getTodoLockIconMarkup(isPrivate) {
+    return `
+      <svg class="todo-inline-lock-icon ${isPrivate ? "is-private" : "is-open"}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <rect x="5" y="10" width="14" height="10" rx="3"></rect>
+        ${isPrivate
+          ? `<path d="M8 10V7a4 4 0 0 1 8 0v3"></path>`
+          : `<path d="M9 10V7a3 3 0 0 1 5.2-2.1"></path>`}
       </svg>
     `;
   }
@@ -3299,6 +3342,10 @@ function initTodoTab(root, { state, persist }) {
     return "";
   }
 
+  function getTodoPrivacyClass(todo) {
+    return todo.private ? " privacy-sensitive" : "";
+  }
+
   function buildTodoRow(todo) {
     const recurrenceLabel = getRecurrenceLabel(todo.recurrence);
     const reminderLabel = formatReminder(todo.reminderAt);
@@ -3308,7 +3355,8 @@ function initTodoTab(root, { state, persist }) {
           <input type="checkbox" data-todo-complete="${todo.id}" ${todo.completed ? "checked" : ""} />
         </label>
         <button type="button" class="todo-favorite-btn${todo.favorite ? " active" : ""}" data-todo-favorite="${todo.id}" aria-label="중요 표시">★</button>
-        <div class="todo-item-main" data-todo-edit="${todo.id}">
+        <button type="button" class="todo-privacy-btn${todo.private ? " active" : ""}" data-todo-private="${todo.id}" aria-label="프라이버시 일정">${getTodoLockIconMarkup(todo.private)}</button>
+        <div class="todo-item-main${getTodoPrivacyClass(todo)}" data-todo-edit="${todo.id}">
           <div class="todo-item-title-row">
             <strong class="todo-item-title">${todo.type === "event" ? `<span class="todo-type-badge">일정</span> ` : ""}${escapeHtml(todo.title)}</strong>
             <span class="todo-item-due">${escapeHtml(formatTodoDue(todo.dueAt))}</span>
@@ -3330,7 +3378,7 @@ function initTodoTab(root, { state, persist }) {
     return `
       <button
         type="button"
-        class="todo-calendar-item${todo.completed ? " completed" : ""}${todo.favorite ? " favorite" : ""}${todo.type === "event" ? " event" : ""}${getTodoAlertClass(todo)}${compact ? " compact" : ""}"
+        class="todo-calendar-item${todo.completed ? " completed" : ""}${todo.favorite ? " favorite" : ""}${todo.type === "event" ? " event" : ""}${getTodoAlertClass(todo)}${compact ? " compact" : ""}${getTodoPrivacyClass(todo)}"
         data-calendar-todo-id="${todo.id}"
         draggable="true"
         title="${escapeHtml(todo.title)}"
@@ -3490,6 +3538,12 @@ function initTodoTab(root, { state, persist }) {
     render();
   }
 
+  function togglePrivacy(todoId) {
+    state.todoItems = state.todoItems.map((item) => item.id === todoId ? { ...item, private: !item.private, updatedAt: new Date().toISOString() } : item);
+    persist();
+    render();
+  }
+
   function openModal(todoId = "") {
     ensureTodoState();
     editingTodoId = todoId;
@@ -3509,6 +3563,7 @@ function initTodoTab(root, { state, persist }) {
     els.locationInput.value = todo?.location || "";
     els.noteInput.value = todo?.note || "";
     els.favoriteInput.checked = Boolean(todo?.favorite);
+    els.privacyInput.checked = Boolean(todo?.private);
     els.completedInput.checked = Boolean(todo?.completed);
     els.modalError.textContent = "";
     els.deleteBtn.hidden = !todo;
@@ -3563,6 +3618,7 @@ function initTodoTab(root, { state, persist }) {
       location: els.locationInput.value.trim(),
       note: els.noteInput.value.trim(),
       favorite: els.favoriteInput.checked,
+      private: els.privacyInput.checked,
       completed: els.completedInput.checked,
       createdAt: editingTodoId ? (state.todoItems.find((item) => item.id === editingTodoId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -3621,6 +3677,7 @@ function initTodoTab(root, { state, persist }) {
       location: "",
       note: "",
       favorite: false,
+      private: false,
       completed: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -3681,6 +3738,12 @@ function initTodoTab(root, { state, persist }) {
       button.addEventListener("click", (event) => {
         event.stopPropagation();
         toggleFavorite(button.dataset.todoFavorite);
+      });
+    });
+    els.board.querySelectorAll("[data-todo-private]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        togglePrivacy(button.dataset.todoPrivate);
       });
     });
     els.board.querySelectorAll("[data-todo-trash]").forEach((button) => {
@@ -3797,21 +3860,34 @@ function initTodoTab(root, { state, persist }) {
   }
 
   function buildTimelineItem(todo) {
+    const recurrenceLabel = getRecurrenceLabel(todo.recurrence);
+    const reminderLabel = formatReminder(todo.reminderAt);
     return `
-      <button
-        type="button"
-        class="todo-timeline-item${todo.completed ? " completed" : ""}${todo.favorite ? " favorite" : ""}${todo.type === "event" ? " event" : ""}${getTodoAlertClass(todo)}"
-        data-todo-edit="${todo.id}"
+      <article
+        class="todo-timeline-item todo-item${todo.favorite ? " favorite" : ""}${todo.completed ? " completed" : ""}${todo.type === "event" ? " event" : ""}${getTodoAlertClass(todo)}"
         data-calendar-todo-id="${todo.id}"
         draggable="true"
       >
-        <span class="todo-timeline-item-time">${escapeHtml(formatTodoDue(todo.dueAt))}</span>
-        <span class="todo-timeline-item-main">
-          ${todo.favorite ? `<span class="todo-important-star" aria-hidden="true">★</span>` : ""}
-          ${todo.type === "event" ? `<span class="todo-type-badge timeline">일정</span>` : ""}
-          <span class="todo-timeline-item-title">${escapeHtml(todo.title)}</span>
-        </span>
-      </button>
+        <label class="todo-item-check">
+          <input type="checkbox" data-todo-complete="${todo.id}" ${todo.completed ? "checked" : ""} />
+        </label>
+        <button type="button" class="todo-favorite-btn${todo.favorite ? " active" : ""}" data-todo-favorite="${todo.id}" aria-label="중요 표시">★</button>
+        <button type="button" class="todo-privacy-btn${todo.private ? " active" : ""}" data-todo-private="${todo.id}" aria-label="프라이버시 일정">${getTodoLockIconMarkup(todo.private)}</button>
+        <div class="todo-item-main todo-timeline-item-main${getTodoPrivacyClass(todo)}" data-todo-edit="${todo.id}">
+          <div class="todo-item-title-row">
+            <strong class="todo-item-title">${todo.type === "event" ? `<span class="todo-type-badge timeline">일정</span> ` : ""}${escapeHtml(todo.title)}</strong>
+            <span class="todo-item-due todo-timeline-item-time">${escapeHtml(formatTodoDue(todo.dueAt))}</span>
+          </div>
+          <div class="todo-item-meta-row">
+            <span class="todo-item-note">${escapeHtml(todo.location || todo.note || "메모 없음")}</span>
+            <span class="todo-item-tags">${recurrenceLabel ? `<span class="todo-pill">${recurrenceLabel}</span>` : ""}${todo.location ? `<span class="todo-pill location">${escapeHtml(todo.location)}</span>` : ""}${reminderLabel ? `<span class="todo-pill reminder">${escapeHtml(reminderLabel)}</span>` : ""}</span>
+          </div>
+        </div>
+        <div class="todo-item-row-actions">
+          <button type="button" class="icon-btn todo-edit-btn" data-todo-edit="${todo.id}" aria-label="할 일 수정">✎</button>
+          <button type="button" class="icon-btn todo-trash-btn" data-todo-trash="${todo.id}" aria-label="할 일 삭제">${getTrashIconMarkup()}</button>
+        </div>
+      </article>
     `;
   }
 
@@ -3960,6 +4036,30 @@ function initTodoTab(root, { state, persist }) {
       button.addEventListener("click", (event) => {
         event.stopPropagation();
         openModal(button.dataset.todoEdit || button.dataset.calendarTodoId);
+      });
+    });
+    els.calendarBody.querySelectorAll("[data-todo-favorite]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleFavorite(button.dataset.todoFavorite);
+      });
+    });
+    els.calendarBody.querySelectorAll("[data-todo-private]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        togglePrivacy(button.dataset.todoPrivate);
+      });
+    });
+    els.calendarBody.querySelectorAll("[data-todo-trash]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openDeleteConfirm(button.dataset.todoTrash);
+      });
+    });
+    els.calendarBody.querySelectorAll("[data-todo-complete]").forEach((input) => {
+      input.addEventListener("change", (event) => {
+        event.stopPropagation();
+        toggleComplete(input.dataset.todoComplete, input.checked);
       });
     });
     els.calendarBody.querySelectorAll("[data-tracker-date]").forEach((button) => {
@@ -6669,12 +6769,330 @@ function initHomeGuide() {
   });
 }
 
+async function hashPrivacyPin(pin) {
+  const normalized = String(pin || "").trim();
+  if (!normalized) return "";
+  const data = new TextEncoder().encode(normalized);
+  const buffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(buffer)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function initPrivacyControls(state, persist) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = `
+    <div id="privacyFab" class="privacy-fab">
+      <div id="privacyHint" class="privacy-hint" role="status">프라이버시 모드를 설정하세요!</div>
+      <div id="privacyFabMenu" class="privacy-fab-menu" aria-hidden="true">
+        <button id="privacyToggleBtn" type="button" class="privacy-fab-action" title="프라이버시 모드 켜기">
+          <span class="privacy-fab-action-label">프라이버시</span>
+        </button>
+        <button id="privacyLockBtn" type="button" class="privacy-fab-action" title="잠금">
+          <span class="privacy-fab-action-label">잠금</span>
+        </button>
+        <button id="privacySettingsBtn" type="button" class="privacy-fab-action" title="설정">
+          <span class="privacy-fab-action-label">설정</span>
+        </button>
+      </div>
+      <button id="privacyFabBtn" type="button" class="privacy-fab-btn" aria-expanded="false" aria-controls="privacyFabMenu" title="프라이버시 메뉴">
+        <span id="privacyFabIcon" class="privacy-fab-icon unlocked" aria-hidden="true">
+          <svg class="privacy-lock-svg privacy-lock-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="10" width="14" height="10" rx="3"></rect>
+            <path d="M9 10V7a3 3 0 0 1 5.2-2.1"></path>
+          </svg>
+          <svg class="privacy-lock-svg privacy-lock-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="10" width="14" height="10" rx="3"></rect>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+          </svg>
+        </span>
+      </button>
+    </div>
+    <div id="privacySettingsModal" class="privacy-modal" aria-hidden="true">
+      <div class="privacy-modal-panel">
+        <div class="privacy-modal-kicker">프라이버시 설정</div>
+        <h3 class="privacy-modal-title">블러와 잠금 설정</h3>
+        <p class="privacy-modal-copy">공용 화면에서는 블러를 켜두고, 잠금 PIN으로 빠르게 가릴 수 있어요.</p>
+        <div class="privacy-shortcuts">
+          <span>Ctrl + Shift + B : 블러 토글</span>
+          <span>Ctrl + Shift + L : 잠금</span>
+          <span>Ctrl + Shift + U 누르고 있기 : 잠깐 보기</span>
+        </div>
+        <div class="form-grid">
+          <label class="field">
+            <span>새 PIN</span>
+            <input id="privacyPinInput" type="password" inputmode="numeric" placeholder="4자리 이상" />
+          </label>
+          <label class="field">
+            <span>PIN 확인</span>
+            <input id="privacyPinConfirmInput" type="password" inputmode="numeric" placeholder="한 번 더 입력" />
+          </label>
+        </div>
+        <div id="privacySettingsError" class="bookmark-modal-error" aria-live="polite"></div>
+        <div class="privacy-modal-actions">
+          <div class="todo-modal-actions-right">
+            <button id="privacyReplayHintBtn" type="button" class="btn btn-muted">안내 다시 보기</button>
+            <button id="privacyRemovePinBtn" type="button" class="btn btn-muted">PIN 삭제</button>
+          </div>
+          <div class="todo-modal-actions-right">
+            <button id="privacySettingsCloseBtn" type="button" class="btn btn-muted">닫기</button>
+            <button id="privacySettingsSaveBtn" type="button" class="btn btn-primary">저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="privacyLockOverlay" class="privacy-lock-overlay" aria-hidden="true">
+      <div class="privacy-lock-panel">
+        <div class="privacy-modal-kicker">잠금됨</div>
+        <h3 class="privacy-modal-title">화면이 잠겨 있어요</h3>
+        <p class="privacy-modal-copy">PIN을 입력해서 다시 열어주세요.</p>
+        <label class="field">
+          <span>잠금 해제 PIN</span>
+          <input id="privacyUnlockInput" type="password" inputmode="numeric" placeholder="PIN 입력" />
+        </label>
+        <div id="privacyUnlockError" class="bookmark-modal-error" aria-live="polite"></div>
+        <div class="privacy-modal-actions">
+          <div></div>
+          <div class="todo-modal-actions-right">
+            <button id="privacyUnlockBtn" type="button" class="btn btn-primary">잠금 해제</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.append(...wrapper.children);
+
+  const els = {
+    fab: document.getElementById("privacyFab"),
+    fabBtn: document.getElementById("privacyFabBtn"),
+    fabIcon: document.getElementById("privacyFabIcon"),
+    fabMenu: document.getElementById("privacyFabMenu"),
+    hint: document.getElementById("privacyHint"),
+    toggleBtn: document.getElementById("privacyToggleBtn"),
+    lockBtn: document.getElementById("privacyLockBtn"),
+    settingsBtn: document.getElementById("privacySettingsBtn"),
+    settingsModal: document.getElementById("privacySettingsModal"),
+    settingsCloseBtn: document.getElementById("privacySettingsCloseBtn"),
+    settingsSaveBtn: document.getElementById("privacySettingsSaveBtn"),
+    settingsError: document.getElementById("privacySettingsError"),
+    pinInput: document.getElementById("privacyPinInput"),
+    pinConfirmInput: document.getElementById("privacyPinConfirmInput"),
+    replayHintBtn: document.getElementById("privacyReplayHintBtn"),
+    removePinBtn: document.getElementById("privacyRemovePinBtn"),
+    lockOverlay: document.getElementById("privacyLockOverlay"),
+    unlockInput: document.getElementById("privacyUnlockInput"),
+    unlockBtn: document.getElementById("privacyUnlockBtn"),
+    unlockError: document.getElementById("privacyUnlockError")
+  };
+
+  let isLocked = false;
+  let isPeeking = false;
+  let isMenuOpen = false;
+  let isPeekShortcutHeld = false;
+
+  function markPrivacyActivated() {
+    if (state.privacyModeActivated) return;
+    state.privacyModeActivated = true;
+    persist();
+  }
+
+  function setMenuOpen(nextOpen) {
+    isMenuOpen = Boolean(nextOpen);
+    els.fab?.classList.toggle("open", isMenuOpen);
+    els.fabBtn?.setAttribute("aria-expanded", String(isMenuOpen));
+    els.fabMenu?.setAttribute("aria-hidden", String(!isMenuOpen));
+  }
+
+  function applyPrivacyState() {
+    document.body.classList.toggle("privacy-mode", Boolean(state.privacyMode));
+    document.body.classList.toggle("privacy-peek", Boolean(isPeeking));
+    document.body.classList.toggle("app-locked", Boolean(isLocked));
+    els.toggleBtn.title = state.privacyMode ? "프라이버시 모드 끄기" : "프라이버시 모드 켜기";
+    els.toggleBtn.setAttribute("aria-label", state.privacyMode ? "프라이버시 모드 끄기" : "프라이버시 모드 켜기");
+    els.toggleBtn.classList.toggle("active", Boolean(state.privacyMode));
+    els.lockBtn.title = state.privacyPinHash ? "화면 잠금" : "잠금 PIN 설정";
+    els.lockBtn.setAttribute("aria-label", state.privacyPinHash ? "화면 잠금" : "잠금 PIN 설정");
+    els.fabIcon.classList.toggle("locked", Boolean(state.privacyMode));
+    els.fabIcon.classList.toggle("unlocked", !state.privacyMode);
+    els.fabBtn.title = state.privacyMode ? "프라이버시 메뉴 열기 (잠김)" : "프라이버시 메뉴 열기 (열림)";
+    els.lockOverlay.classList.toggle("open", Boolean(isLocked));
+    els.lockOverlay.setAttribute("aria-hidden", String(!isLocked));
+    if (state.privacyMode && !state.privacyModeActivated) {
+      markPrivacyActivated();
+    }
+    els.hint?.classList.toggle("hidden", Boolean(state.privacyModeActivated));
+    window.dispatchEvent(new CustomEvent("privacy-mode-change", { detail: { enabled: Boolean(state.privacyMode) } }));
+  }
+
+  function openSettingsModal(message = "") {
+    els.settingsError.textContent = message;
+    els.pinInput.value = "";
+    els.pinConfirmInput.value = "";
+    els.settingsModal.classList.add("open");
+    els.settingsModal.setAttribute("aria-hidden", "false");
+    requestAnimationFrame(() => els.pinInput.focus());
+  }
+
+  function closeSettingsModal() {
+    els.settingsModal.classList.remove("open");
+    els.settingsModal.setAttribute("aria-hidden", "true");
+    els.settingsError.textContent = "";
+    setMenuOpen(false);
+  }
+
+  function lockApp() {
+    if (!state.privacyPinHash) {
+      openSettingsModal("먼저 잠금 PIN을 설정해 주세요.");
+      return;
+    }
+    isLocked = true;
+    isPeeking = false;
+    setMenuOpen(false);
+    els.unlockInput.value = "";
+    els.unlockError.textContent = "";
+    applyPrivacyState();
+    requestAnimationFrame(() => els.unlockInput.focus());
+  }
+
+  async function unlockApp() {
+    const enteredHash = await hashPrivacyPin(els.unlockInput.value);
+    if (!enteredHash || enteredHash !== state.privacyPinHash) {
+      els.unlockError.textContent = "PIN이 맞지 않아요.";
+      els.unlockInput.select();
+      return;
+    }
+    isLocked = false;
+    els.unlockError.textContent = "";
+    els.unlockInput.value = "";
+    applyPrivacyState();
+  }
+
+  els.toggleBtn.addEventListener("click", () => {
+    state.privacyMode = !state.privacyMode;
+    if (state.privacyMode) {
+      markPrivacyActivated();
+    }
+    persist();
+    applyPrivacyState();
+    setMenuOpen(false);
+  });
+
+  els.fabBtn.addEventListener("click", () => {
+    setMenuOpen(!isMenuOpen);
+  });
+  els.lockBtn.addEventListener("click", lockApp);
+  els.settingsBtn.addEventListener("click", () => {
+    openSettingsModal();
+  });
+  els.hint?.addEventListener("click", () => {
+    setMenuOpen(false);
+    openSettingsModal();
+  });
+  els.settingsCloseBtn.addEventListener("click", closeSettingsModal);
+  els.settingsModal.addEventListener("click", (event) => {
+    if (event.target === els.settingsModal) closeSettingsModal();
+  });
+  els.lockOverlay.addEventListener("click", (event) => {
+    if (event.target === els.lockOverlay) {
+      els.unlockInput.focus();
+    }
+  });
+
+  els.settingsSaveBtn.addEventListener("click", async () => {
+    const pin = String(els.pinInput.value || "").trim();
+    const confirm = String(els.pinConfirmInput.value || "").trim();
+    if (pin.length < 4) {
+      els.settingsError.textContent = "PIN은 4자리 이상으로 입력해 주세요.";
+      return;
+    }
+    if (pin !== confirm) {
+      els.settingsError.textContent = "PIN 확인 값이 다릅니다.";
+      return;
+    }
+    state.privacyPinHash = await hashPrivacyPin(pin);
+    persist();
+    closeSettingsModal();
+  });
+
+  els.removePinBtn.addEventListener("click", () => {
+    state.privacyPinHash = "";
+    persist();
+    closeSettingsModal();
+  });
+
+  els.replayHintBtn.addEventListener("click", () => {
+    state.privacyModeActivated = false;
+    persist();
+    applyPrivacyState();
+    closeSettingsModal();
+  });
+
+  els.unlockBtn.addEventListener("click", unlockApp);
+  els.unlockInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      unlockApp();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "b") {
+      event.preventDefault();
+      state.privacyMode = !state.privacyMode;
+      if (state.privacyMode) {
+        markPrivacyActivated();
+      }
+      persist();
+      applyPrivacyState();
+      return;
+    }
+    if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "l") {
+      event.preventDefault();
+      lockApp();
+      return;
+    }
+    if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "u" && state.privacyMode && !isLocked) {
+      event.preventDefault();
+      isPeekShortcutHeld = true;
+      isPeeking = true;
+      applyPrivacyState();
+    }
+    if (event.key === "Escape") {
+      setMenuOpen(false);
+      closeSettingsModal();
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!els.fab?.contains(event.target)) {
+      setMenuOpen(false);
+    }
+  });
+
+  document.addEventListener("keyup", (event) => {
+    if (isPeekShortcutHeld && (event.key.toLowerCase() === "u" || event.key === "Control" || event.key === "Shift")) {
+      isPeekShortcutHeld = false;
+      isPeeking = false;
+      applyPrivacyState();
+    }
+  });
+
+  window.addEventListener("blur", () => {
+    if (!isPeeking) return;
+    isPeekShortcutHeld = false;
+    isPeeking = false;
+    applyPrivacyState();
+  });
+
+  setMenuOpen(false);
+  applyPrivacyState();
+}
+
 async function bootstrap() {
   const host = document.getElementById("tabHost");
   initHeroZodiacMark();
   placeGlobalLunchAlertNearTitle();
   moveHomeGuideButtonToTabBar();
   initHomeGuide();
+  initPrivacyControls(state, persist);
   const tabs = await loadTabs(host, tabConfigs, { state, persist });
   ["tracker", "todo", "lunch"].forEach((tabId) => {
     const tab = tabs.find((entry) => entry.id === tabId);

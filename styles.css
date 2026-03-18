@@ -31,8 +31,228 @@ body {
   padding: 20px;
 }
 
+body.app-locked .app-shell {
+  filter: blur(18px);
+  pointer-events: none;
+  user-select: none;
+}
+
+body.privacy-mode .privacy-sensitive {
+  filter: blur(12px);
+  user-select: none;
+  transition: filter 0.18s ease;
+}
+
+body.privacy-mode.privacy-peek .privacy-sensitive {
+  filter: none;
+}
+
 button, input, select, textarea {
   font: inherit;
+}
+
+.privacy-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.privacy-hint {
+  position: absolute;
+  right: 62px;
+  bottom: 9px;
+  max-width: 220px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(250, 204, 21, 0.28);
+  color: #fde68a;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 16px 34px rgba(2, 6, 23, 0.3);
+  backdrop-filter: blur(14px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.privacy-hint.hidden {
+  opacity: 0;
+  transform: translateX(6px);
+  pointer-events: none;
+}
+
+.privacy-fab-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(8px) scale(0.94);
+  transform-origin: bottom right;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.24s ease;
+}
+
+.privacy-fab.open .privacy-fab-menu {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.privacy-fab-btn,
+.privacy-fab-action {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.94);
+  color: #f8fafc;
+  box-shadow: 0 16px 34px rgba(2, 6, 23, 0.28);
+  backdrop-filter: blur(14px);
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.privacy-fab-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.privacy-fab-btn:hover,
+.privacy-fab-btn:focus-visible,
+.privacy-fab-action:hover,
+.privacy-fab-action:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(96, 165, 250, 0.36);
+  background: rgba(30, 41, 59, 0.98);
+  outline: none;
+}
+
+.privacy-fab-icon {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.privacy-lock-svg {
+  width: 22px;
+  height: 22px;
+  display: none;
+}
+
+.privacy-fab-icon.unlocked {
+  color: #60a5fa;
+}
+
+.privacy-fab-icon.locked {
+  color: #f87171;
+}
+
+.privacy-fab-icon.unlocked .privacy-lock-open,
+.privacy-fab-icon.locked .privacy-lock-closed {
+  display: block;
+}
+
+.privacy-fab-action {
+  min-width: 94px;
+  height: 38px;
+  border-radius: 999px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.privacy-fab-action.active {
+  border-color: rgba(96, 165, 250, 0.42);
+  background: rgba(37, 99, 235, 0.18);
+  color: #bfdbfe;
+}
+
+.privacy-fab-action-label {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.privacy-modal,
+.privacy-lock-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 6, 23, 0.72);
+  z-index: 130;
+}
+
+.privacy-modal.open,
+.privacy-lock-overlay.open {
+  display: flex;
+}
+
+.privacy-modal-panel,
+.privacy-lock-panel {
+  width: min(520px, 100%);
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 22px 60px rgba(2, 6, 23, 0.42);
+}
+
+.privacy-modal-kicker {
+  color: #7dd3fc;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.privacy-modal-title {
+  margin: 10px 0 8px;
+  font-size: 24px;
+}
+
+.privacy-modal-copy {
+  margin: 0 0 16px;
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+.privacy-shortcuts {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.privacy-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .app-shell {
@@ -2755,7 +2975,7 @@ td.date-sunday {
 
 .todo-item {
   display: grid;
-  grid-template-columns: 22px 24px minmax(0, 1fr) auto;
+  grid-template-columns: 24px 28px 28px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   padding: 12px 12px;
@@ -2848,6 +3068,7 @@ td.date-sunday {
 }
 
 .todo-favorite-btn,
+.todo-privacy-btn,
 .todo-edit-btn,
 .todo-trash-btn {
   border: 0;
@@ -2856,6 +3077,18 @@ td.date-sunday {
   cursor: pointer;
   padding: 0;
   box-shadow: none;
+}
+
+.todo-favorite-btn,
+.todo-privacy-btn {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
 }
 
 .todo-item-row-actions {
@@ -2900,6 +3133,20 @@ td.date-sunday {
 
 .todo-favorite-btn.active {
   color: #facc15;
+}
+
+.todo-privacy-btn {
+  color: #60a5fa;
+}
+
+.todo-privacy-btn.active {
+  color: #f87171;
+}
+
+.todo-inline-lock-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .todo-item-main {
@@ -3240,7 +3487,7 @@ td.date-sunday {
 .todo-important-star {
   color: #facc15;
   text-shadow: 0 0 12px rgba(250, 204, 21, 0.45);
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1;
 }
 
@@ -3347,17 +3594,7 @@ td.date-sunday {
 
 .todo-timeline-item {
   width: 100%;
-  display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  gap: 12px;
-  align-items: center;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  background: rgba(30, 41, 59, 0.82);
-  color: #e2e8f0;
-  border-radius: 14px;
-  padding: 12px 14px;
-  text-align: left;
-  cursor: pointer;
+  cursor: grab;
 }
 
 .todo-timeline-item.favorite {
@@ -3408,25 +3645,8 @@ td.date-sunday {
   opacity: 0.5;
 }
 
-.todo-timeline-item-time {
-  color: #cbd5e1;
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .todo-timeline-item-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
   min-width: 0;
-}
-
-.todo-timeline-item-title {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 800;
 }
 
 .todo-day-board {
@@ -3485,8 +3705,21 @@ td.date-sunday {
 .todo-modal-options {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 14px;
   margin-top: 14px;
+}
+
+.todo-modal-options-left,
+.todo-modal-options-right {
+  display: flex;
+  align-items: center;
+}
+
+.todo-modal-options-right {
+  justify-content: flex-end;
+  gap: 14px;
+  margin-left: auto;
 }
 
 .todo-check {
@@ -3496,6 +3729,125 @@ td.date-sunday {
   color: #e2e8f0;
   font-size: 14px;
   font-weight: 700;
+  cursor: pointer;
+}
+
+.todo-check input {
+  margin: 0;
+}
+
+.todo-check-icon {
+  position: relative;
+  min-width: 24px;
+  min-height: 24px;
+  justify-content: center;
+  color: #94a3b8;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.todo-check-icon input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.todo-check-icon span {
+  font-size: 21px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.todo-check-icon:hover,
+.todo-check-icon:has(input:focus-visible) {
+  transform: translateY(-1px);
+  color: #cbd5e1;
+}
+
+.todo-check-icon:has(input:checked) {
+  color: #e2e8f0;
+}
+
+.todo-check-icon:has(#todoFavoriteInput:checked) {
+  color: #facc15;
+}
+
+.todo-check-icon:has(#todoPrivacyInput:checked) {
+  color: #f87171;
+}
+
+.todo-privacy-icon {
+  width: 21px;
+  height: 21px;
+  display: none;
+}
+
+.todo-check-privacy .todo-privacy-icon-open {
+  display: block;
+}
+
+.todo-check-privacy {
+  color: #60a5fa;
+}
+
+.todo-check-privacy:has(input:checked) .todo-privacy-icon-open {
+  display: none;
+}
+
+.todo-check-privacy:has(input:checked) .todo-privacy-icon-closed {
+  display: block;
+}
+
+.todo-check-complete {
+  gap: 10px;
+  padding: 0 2px;
+}
+
+.todo-check-complete input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.34);
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.todo-check-complete input:hover,
+.todo-check-complete input:focus-visible {
+  border-color: rgba(125, 211, 252, 0.52);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+  outline: none;
+}
+
+.todo-check-complete input:checked {
+  background: linear-gradient(135deg, rgba(8, 47, 73, 0.98), rgba(14, 116, 144, 0.98));
+  border-color: rgba(103, 232, 249, 0.58);
+}
+
+.todo-check-complete input:checked::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 4px;
+  width: 5px;
+  height: 10px;
+  border: solid #e0f2fe;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.todo-check-complete span {
+  color: #cbd5e1;
 }
 
 .todo-modal-actions {
