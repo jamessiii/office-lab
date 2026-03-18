@@ -6829,7 +6829,6 @@ function initPrivacyControls(state, persist) {
         <div id="privacySettingsError" class="bookmark-modal-error" aria-live="polite"></div>
         <div class="privacy-modal-actions">
           <div class="todo-modal-actions-right">
-            <button id="privacyReplayHintBtn" type="button" class="btn btn-muted">안내 다시 보기</button>
             <button id="privacyRemovePinBtn" type="button" class="btn btn-muted">PIN 삭제</button>
           </div>
           <div class="todo-modal-actions-right">
@@ -6875,7 +6874,6 @@ function initPrivacyControls(state, persist) {
     settingsError: document.getElementById("privacySettingsError"),
     pinInput: document.getElementById("privacyPinInput"),
     pinConfirmInput: document.getElementById("privacyPinConfirmInput"),
-    replayHintBtn: document.getElementById("privacyReplayHintBtn"),
     removePinBtn: document.getElementById("privacyRemovePinBtn"),
     lockOverlay: document.getElementById("privacyLockOverlay"),
     unlockInput: document.getElementById("privacyUnlockInput"),
@@ -7018,12 +7016,6 @@ function initPrivacyControls(state, persist) {
     closeSettingsModal();
   });
 
-  els.replayHintBtn.addEventListener("click", () => {
-    state.privacyModeActivated = false;
-    persist();
-    applyPrivacyState();
-    closeSettingsModal();
-  });
 
   els.unlockBtn.addEventListener("click", unlockApp);
   els.unlockInput.addEventListener("keydown", (event) => {
