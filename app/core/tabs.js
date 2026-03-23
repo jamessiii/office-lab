@@ -66,7 +66,7 @@ function ensureTabInitialized(tab) {
 export function setActiveTab(tabs, activeTabId) {
   const currentActiveTab = tabs.find((tab) => tab.section.classList.contains("active"));
   const nextActiveTab = tabs.find((tab) => tab.id === activeTabId);
-  const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
+  const tabButtons = Array.from(document.querySelectorAll(".tab-btn[data-tab]"));
   const currentIndex = currentActiveTab ? tabButtons.findIndex((button) => button.dataset.tab === currentActiveTab.id) : -1;
   const nextIndex = nextActiveTab ? tabButtons.findIndex((button) => button.dataset.tab === nextActiveTab.id) : -1;
   const direction = currentIndex === -1 || nextIndex === -1 || nextIndex >= currentIndex ? 1 : -1;
@@ -118,7 +118,7 @@ export function setActiveTab(tabs, activeTabId) {
     }
   });
 
-  document.querySelectorAll(".tab-btn").forEach((button) => {
+  document.querySelectorAll(".tab-btn[data-tab]").forEach((button) => {
     button.classList.toggle("active", button.dataset.tab === activeTabId);
   });
 
@@ -127,11 +127,11 @@ export function setActiveTab(tabs, activeTabId) {
 
 export function bindTabButtons(onSelect) {
   ensureTabIndicator();
-  document.querySelectorAll(".tab-btn").forEach((button) => {
+  document.querySelectorAll(".tab-btn[data-tab]").forEach((button) => {
     button.addEventListener("click", () => onSelect(button.dataset.tab));
   });
   window.addEventListener("resize", () => {
-    const activeButton = document.querySelector(".tab-btn.active");
+    const activeButton = document.querySelector(".tab-btn[data-tab].active");
     if (activeButton) updateTabIndicator(activeButton.dataset.tab);
   });
 }

@@ -975,6 +975,71 @@ body.app-ready .tab-bar-actions {
   transform: translateY(-1px);
 }
 
+.tab-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 10px 16px;
+  border-color: rgba(45, 212, 191, 0.34);
+  background:
+    linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(37, 99, 235, 0.18)),
+    rgba(15, 23, 42, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 28px rgba(8, 15, 32, 0.18);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tab-link-btn:hover,
+.tab-link-btn:focus-visible {
+  color: #f0fdfa;
+  border-color: rgba(94, 234, 212, 0.56);
+  background:
+    linear-gradient(135deg, rgba(20, 184, 166, 0.22), rgba(59, 130, 246, 0.24)),
+    rgba(15, 23, 42, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 34px rgba(8, 15, 32, 0.24);
+  outline: none;
+}
+
+.tab-link-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tab-link-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #99f6e4;
+}
+
+.tab-link-label {
+  line-height: 1.1;
+  color: #ecfeff;
+}
+
+.tab-link-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f0fdfa;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.tab-link-btn:hover .tab-link-icon,
+.tab-link-btn:focus-visible .tab-link-icon {
+  transform: translate(1px, -1px);
+  background: rgba(255, 255, 255, 0.14);
+}
+
 .tab-btn.tab-alert-todo,
 .tab-btn.tab-alert-lunch,
 .tab-btn.tab-alert-tracker,
