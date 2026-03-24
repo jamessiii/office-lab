@@ -25,15 +25,8 @@ const tabConfigs = [
 function initHeroZodiacMark() {
   const heroMark = document.getElementById("heroMark");
   if (!heroMark) return;
-
-  const zodiacMarks = ["🐵", "🐔", "🐶", "🐷", "🐭", "🐮", "🐯", "🐰", "🐲", "🐍", "🐴", "🐑"];
-  const zodiacLabels = ["원숭이띠", "닭띠", "개띠", "돼지띠", "쥐띠", "소띠", "호랑이띠", "토끼띠", "용띠", "뱀띠", "말띠", "양띠"];
-  const year = new Date().getFullYear();
-  const index = ((year - 2016) % 12 + 12) % 12;
-
-  heroMark.textContent = zodiacMarks[index];
-  heroMark.setAttribute("title", `${year}년 ${zodiacLabels[index]}`);
-  heroMark.setAttribute("aria-label", `${year}년 ${zodiacLabels[index]}`);
+  heroMark.setAttribute("title", "이음 집현전");
+  heroMark.setAttribute("draggable", "true");
 }
 
 function buildWeatherIcon(condition = "sunny") {

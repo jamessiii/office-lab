@@ -574,42 +574,42 @@ function ensureGlobalHeaderLayout() {
 
 const SEO_TAB_META = {
   tracker: {
-    title: "슬기로운 월루생활 | 이음 Lab",
+    title: "슬기로운 월루생활 | 이음 집현전",
     description: "출근, 퇴근, 근무시간, 손해 금액, 휴가와 근무 기록을 한눈에 관리하는 슬기로운 월루생활 탭입니다."
   },
   income: {
-    title: "실수령액표 | 이음 Lab",
+    title: "실수령액표 | 이음 집현전",
     description: "연봉과 월급 기준으로 실수령액을 빠르게 계산하고 비교할 수 있는 실수령액표 탭입니다."
   },
   market: {
-    title: "시장 | 이음 Lab",
+    title: "시장 | 이음 집현전",
     description: "원화 기준 환율과 주요 지수, 대표 종목, 가상자산 흐름을 한 화면에서 확인하는 시장 탭입니다."
   },
   bookmarks: {
-    title: "북마크 관리 | 이음 Lab",
+    title: "북마크 관리 | 이음 집현전",
     description: "자주 쓰는 사이트를 그룹과 라벨로 정리하고 새 탭으로 빠르게 여는 북마크 관리 탭입니다."
   },
   todo: {
-    title: "오늘 할 일 캘린더 | 이음 Lab",
+    title: "오늘 할 일 캘린더 | 이음 집현전",
     description: "할 일과 일정을 목록과 캘린더로 관리하고 반복 작업, 미리 알림, 중요 표시까지 지원하는 오늘 할 일 탭입니다."
   },
   lunch: {
-    title: "점메추 | 이음 Lab",
+    title: "점메추 | 이음 집현전",
     description: "근처 식당 탐색, 즐겨찾기, 카테고리 필터, 오늘 메뉴 랜덤 뽑기를 지원하는 점메추 탭입니다."
   },
   fortune: {
-    title: "오늘의 운세 | 이음 Lab",
+    title: "오늘의 운세 | 이음 집현전",
     description: "띠별 오늘의 운세를 확인하고 한 줄 운세, 업무운, 금전운, 관계운을 볼 수 있는 탭입니다."
   },
   ladder: {
-    title: "사다리게임 | 이음 Lab",
+    title: "사다리게임 | 이음 집현전",
     description: "참가자와 결과를 자유롭게 설정하고 세로형과 가로형으로 즐길 수 있는 사다리게임 탭입니다."
   }
 };
 
 function updateSeoMeta(activeTabId) {
   const meta = SEO_TAB_META[activeTabId] || {
-    title: "이음 Lab | 월급 계산, 시장, 점메추, 오늘 할 일, 북마크, 운세, 사다리게임",
+    title: "이음 집현전 | 월급 계산, 시장, 점메추, 오늘 할 일, 북마크, 운세, 사다리게임",
     description: "직장인을 위한 올인원 업무 보조 대시보드. 월급 계산과 시장 정보, 점메추, 오늘 할 일, 북마크, 운세, 사다리게임을 한 곳에서 관리하세요."
   };
   document.title = meta.title;
@@ -630,7 +630,7 @@ function updateSeoMeta(activeTabId) {
     structuredData.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      name: "이음 Lab",
+      name: "이음 집현전",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       inLanguage: "ko-KR",
@@ -7763,15 +7763,7 @@ const tabConfigs = [
 function initHeroZodiacMark() {
   const heroMark = document.getElementById("heroMark");
   if (!heroMark) return;
-
-  const zodiacMarks = ["🐵", "🐔", "🐶", "🐷", "🐭", "🐮", "🐯", "🐰", "🐲", "🐍", "🐴", "🐑"];
-  const zodiacLabels = ["원숭이띠", "닭띠", "개띠", "돼지띠", "쥐띠", "소띠", "호랑이띠", "토끼띠", "용띠", "뱀띠", "말띠", "양띠"];
-  const year = new Date().getFullYear();
-  const index = ((year - 2016) % 12 + 12) % 12;
-
-  heroMark.textContent = zodiacMarks[index];
-  heroMark.setAttribute("title", `${year}년 ${zodiacLabels[index]}`);
-  heroMark.setAttribute("aria-label", `${year}년 ${zodiacLabels[index]}`);
+  heroMark.setAttribute("title", "이음 집현전");
   heroMark.setAttribute("draggable", "true");
 }
 
